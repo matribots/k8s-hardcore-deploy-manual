@@ -1,0 +1,134 @@
+# 1. Kubernetes集群中的证书类别简介
+
+- kubelet 的客户端证书，用于 kube-apiserver 的身份验证
+- kubelet 的[服务端证书](https://kubernetes.io/zh-cn/docs/reference/access-authn-authz/kubelet-tls-bootstrapping/#client-and-serving-certificates)， 用于 kube-apiserver 与 kubelet 的会话
+- kube-apiserver 端点的证书
+- K8s集群管理员的客户端证书，用于 kube-apiserver 身份认证
+- kube-apiserver 的客户端证书，用于和 kubelet 的会话
+- kube-apiserver 的客户端证书，用于和 etcd 的会话
+- kube-controller-manager的客户端证书或 kubeconfig，用于和 API 服务器的会话
+- kube-scheduler的客户端证书或 kubeconfig，用于和 API 服务器的会话
+- [前端代理](https://kubernetes.io/zh-cn/docs/tasks/extend-kubernetes/configure-aggregation-layer/)的客户端及服务端证书
+
+本手册**不讨论**[前端代理](https://kubernetes.io/zh-cn/docs/tasks/extend-kubernetes/configure-aggregation-layer/)的客户端及服务端证书。
+
+（此处配图）
+
+
+
+# 2. 机器规划
+
+## 2.1. operation-machine
+
+| 主机名            | IP地址        | 备注                                                         |
+| ----------------- | ------------- | ------------------------------------------------------------ |
+| operation-machine | 192.168.1.200 | 操作机 —— 用来签发k8s组件所需的证书、配置kubectl客户端等、作为时间同步服务器。 |
+
+## 2.2. etcd
+
+| 主机名  | IP地址        |
+| ------- | ------------- |
+| etcd-01 | 192.168.1.201 |
+| etcd-02 | 192.168.1.202 |
+| etcd-03 | 192.168.1.203 |
+
+## 2.3. k8s master
+
+| 主机名        | IP地址        |
+| ------------- | ------------- |
+| k8s-master-01 | 192.168.1.204 |
+
+## 2.4. k8s nodes
+
+| 主机名      | IP地址        |
+| ----------- | ------------- |
+| k8s-node-01 | 192.168.1.207 |
+| k8s-node-02 | 192.168.1.208 |
+| k8s-node-03 | 192.168.1.209 |
+
+## 2.5. 系统约定
+
+本文档使用Ubuntu 22系统，**每台机器**上统一使用kube用户及用户组，并且kube用户拥有sudo权限。
+
+## 2.6. 文件目录约定
+
+约定如下目录：
+
+| 路径                       | 作用                                                         | 备注                                                  |
+| -------------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
+| /opt/kubernetes/bin        | 存放k8s集群相关的二进制，包括k8s组件、容器运行时、CNI等。    | 每台机器上都要创建，且该路径要添加到$PATH环境变量内。 |
+| /opt/kubernetes/pki        | 存放k8s集群所有相关的ca证书。并且应当用表意的目录名分类存放，如：/opt/kubernetes/pki/etcd/cert，/opt/kubernetes/pki/kube-apiserver/cert。 | 每台机器上都要创建。                                  |
+| /var/etcd/data             | etcd数据目录                                                 | 仅在etcd机器上创建                                    |
+| /var/etcd/wal              | etcd wal数据目录                                             | 仅在etcd机器上创建                                    |
+| /opt/kubernetes/kubeconfig | 存放k8s各组件的kubeconfig文件。如kube-scheduler、kube-controller-manager等。但是kubectl的kubeconfig文件应当放在~/.kube目录下 | 仅在k8s master、k8s nodes机器上创建                   |
+| /var/lib/kubelet           | kubelet数据目录                                              | 仅在k8s node机器上创建                                |
+| /var/lib/kube-proxy        | kube-proxy配置文件                                           | 仅在k8s node机器上创建                                |
+| /etc/containerd            | containerd配置文件目录。containerd默认使用该位置配置文件：/etc/containerd/config.toml。 | 仅在k8s node机器上创建                                |
+| /etc/cni/net.d             | 基础cni插件配置文件目录                                      | 仅在k8s node机器上创建                                |
+
+
+
+# 3. K8s集群规划
+
+<table>
+  <tr>
+    <td>
+      <strong>Service IP范围</strong>
+    </td>
+    <td>
+      10.68.0.0/16
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <strong>Pod IP 范围</strong>
+    </td>
+    <td>
+      172.20.0.0/16
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <strong>容器运行时</strong>
+    </td>
+    <td>
+      containerd
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <strong>网络插件</strong>
+    </td>
+    <td>
+      Calico
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <strong>DNS插件</strong>
+    </td>
+    <td>
+      CoreDNS
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <strong>kube-proxy 工作模式</strong>
+    </td>
+    <td>
+      ipvs
+    </td>
+  </tr>
+</table>
+
+
+# 4. 架构图
+
+此处配整体架构图
+
+
+
+# 5. 参考
+
+1. [Options for Highly Available Topology | Kubernetes](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/)
+2. [PKI certificates and requirements](https://kubernetes.io/docs/setup/best-practices/certificates/)
