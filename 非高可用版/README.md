@@ -4,13 +4,9 @@
 
 作用于一个K8s集群范围内的私有CA证书，是各组件之间的信任主体。本文档中通过cfssl来创建。
 
-
-
 ## 1.2. etcd证书
 
 用于组建etcd节点的证书。通常是将所有etcd节点的ip地址写入csr进行签发，从而达到一张证书供所有节点使用（当然，喜欢折腾的话，可以给每个节点单独签）。
-
-
 
 ## 1.3. kube-apiserver证书
 
@@ -23,8 +19,6 @@
 
 通常是签一张kube-apiserver证书作为服务端、客户端证书使用，而不是分别签发kube-apiserver的服务端、客户端两张证书（当然，喜欢折腾的话也可以分开签）。
 
-
-
 ## 1.4. kubelet证书
 
 分为服务端证书和客户端证书。
@@ -35,25 +29,21 @@
 
 和kube-apiserver一样，通常是签一张kubelet证书作为服务端、客户端证书使用，而不是分别签发kubelet的服务端、客户端两张证书。
 
-
-
 ## 1.5. kube-controller-manager证书
 
-- kube-controller-manager的客户端证书或 kubeconfig，用于和 API 服务器的会话
-
-
+kube-controller-manager的客户端证书，通常写入kubeconfig文件中，用于和kube-apiserver的会话。
 
 ## 1.6. kube-scheduler证书
 
-- kube-scheduler的客户端证书或 kubeconfig，用于和 API 服务器的会话
-
-
+kube-scheduler的客户端证书，通常写入kubeconfig文件中，用于和 kube-apiserver的会话。
 
 ## 1.7 K8s集群管理员证书
 
-- K8s集群管理员的客户端证书，用于 kube-apiserver 身份认证并操作K8s集群。典型用法：配置给kubectl工具。
+K8s集群管理员的客户端证书，用于 kube-apiserver 身份认证并操作K8s集群。典型用法：配置给kubectl工具。
 
+&nbsp;
 
+&nbsp;
 
 # 2. 机器规划
 
@@ -105,7 +95,9 @@
 | /etc/containerd            | containerd配置文件目录。containerd默认使用该位置配置文件：/etc/containerd/config.toml。 | 仅在k8s node机器上创建                                |
 | /etc/cni/net.d             | 基础cni插件配置文件目录                                      | 仅在k8s node机器上创建                                |
 
+&nbsp;
 
+&nbsp;
 
 # 3. K8s集群规划
 
@@ -159,13 +151,17 @@
     </td>
   </tr>
 </table>
+&nbsp;
 
+&nbsp;
 
 # 4. 整体架构
 
-此处配整体架构图
+![](../pictures/single_control_plane_node_architecture.png)
 
+&nbsp;
 
+&nbsp;
 
 # 5. 参考
 
